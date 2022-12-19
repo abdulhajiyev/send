@@ -165,7 +165,7 @@ const conf = convict({
   },
   base_url: {
     format: 'url',
-    default: 'https://send.example.com',
+    default: 'https://send.hajiyev.me',
     env: 'BASE_URL'
   },
   custom_title: {
