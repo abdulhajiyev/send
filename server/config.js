@@ -155,7 +155,7 @@ const conf = convict({
   },
   max_file_size: {
     format: Number,
-    default: 1024 * 1024 * 1024 * 2.5,
+    default: 1024 * 1024 * 1024 * 10,
     env: 'MAX_FILE_SIZE'
   },
   l10n_dev: {
@@ -240,7 +240,7 @@ const conf = convict({
   },
   footer_cli_url: {
     format: String,
-    default: 'https://github.com/timvisee/ffsend',
+    default: '',
     env: 'SEND_FOOTER_CLI_URL'
   },
   footer_dmca_url: {
@@ -250,12 +250,12 @@ const conf = convict({
   },
   footer_source_url: {
     format: String,
-    default: 'https://github.com/timvisee/send',
+    default: '',
     env: 'SEND_FOOTER_SOURCE_URL'
   },
   custom_footer_text: {
     format: String,
-    default: '',
+    default: 'By Abdul Hajiyev',
     env: 'CUSTOM_FOOTER_TEXT'
   },
   custom_footer_url: {
