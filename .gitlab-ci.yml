@@ -1,0 +1,71 @@
+
+stages:
+  - test
+  - release
+
+# Build Send, run npm tests
+test:
+  stage: test
+  image: "node:15-slim"
+  only:
+    - api
+    - branches
+    - chat
+    - merge_requests
+    - pushes
+    - schedules
+    - tags
+    - triggers
+    - web
+  before_script:
+    # Install dependencies
+    - apt-get update
+    - apt-get install -y git python3 build-essential libxtst6
+
+    # Prepare Chrome for puppeteer
+    - apt-get install -y wget gnupg
+    - wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add -
+    - sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list'
+    - apt-get update
+    - apt-get install -y google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf libxss1 --no-install-recommends
+  script:
+    - npm ci
+    - npm run lint
+    - npm test
+
+release-docker:
+  stage: release
+  image: docker:latest
+  services:
+    - docker:dind
+  only:
+    - api
+    - branches
+    - chat
+    - merge_requests
+    - pushes
+    - schedules
+    - tags
+    - triggers
+    - web
+  script:
+    - docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+    - docker build -t send .
+    - |
+      if [ "$CI_PIPELINE_SOURCE" == "merge_request_event" ]; then
+        IMAGE_NAMES="$CI_REGISTRY_IMAGE/mr:$CI_MERGE_REQUEST_IID"
+      elif [ "$CI_COMMIT_TAG" != "" ]; then
+        IMAGE_NAMES="$CI_REGISTRY_IMAGE:$CI_COMMIT_TAG $CI_REGISTRY_IMAGE:latest"
+      else
+        IMAGE_NAMES="$CI_REGISTRY_IMAGE/$CI_COMMIT_BRANCH:$CI_COMMIT_SHORT_SHA"
+      fi
+    - |
+      for image in $IMAGE_NAMES; do
+        docker tag send $image
+        docker push $image
+      done
+    - |
+      echo "Container image pushed. You can pull it with";
+      for image in $IMAGE_NAMES; do
+        echo "docker pull $image"
+      done
